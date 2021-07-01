@@ -36,11 +36,7 @@ export function LoggedIn() {
       <main className="conversation">
         {/* <!-- Chat header --> */}
         <header className="panel"></header>
-        {/*   
-      <!-- 
-  
-        The Messages List will go here. Check main-messages-list.html
-       --> */}
+
         <ul className="conversation__messages"></ul>
 
         {/* <!-- Message Box --> */}

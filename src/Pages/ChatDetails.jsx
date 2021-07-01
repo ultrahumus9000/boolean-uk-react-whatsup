@@ -2,29 +2,35 @@ import { useContext, useEffect } from "react";
 import { useHistory, useParams } from "react-router-dom";
 import { usersContext } from "../App";
 import { SideChatList } from "../components/SideChat";
+
 export default function ChatDetails() {
   let history = useHistory();
 
   const { users, activeUser, conversations, setConversations } =
     useContext(usersContext);
 
-  if (activeUser.avatar === undefined) {
-    history.push("/");
-  }
   let filteredUsers = users.filter(
     (user) => user.firstName !== activeUser.firstName
   );
-
+  if (activeUser.avatar === undefined) {
+    history.push("/");
+  }
+  console.log(activeUser);
   const { chatId } = useParams();
-  console.log(typeof chatId);
-  console.log(chatId);
-  console.log(conversations);
 
   //chat id is who the active user chat with need to find coversation id  first
   useEffect(() => {
-    fetch(`http://localhost:4000/conversations?userId=${activeUser.id}`)
+    if (activeUser.avatar === undefined) {
+      return;
+    }
+    let activeUserId = activeUser.id;
+    let array = [activeUserId, parseInt(chatId)];
+    array = array.sort((a, b) => a - b);
+    console.log(array);
+    fetch(`http://localhost:4000/conversations?userId=${array[0]}&${array[1]}`)
       .then((resp) => resp.json())
       .then((conversationInfo) => {
+        console.log(conversationInfo);
         let findCov = conversationInfo.find((cov) => {
           let condition =
             (cov.participantId === parseInt(chatId) &&
@@ -33,14 +39,18 @@ export default function ChatDetails() {
               cov.userId === parseInt(chatId));
           return condition;
         });
+        console.log(findCov);
         return findCov;
       })
       .then((findCov) => {
+        if (findCov === undefined) {
+          return;
+        }
         fetch(`http://localhost:4000/messages?conversationId=${findCov.id}`)
           .then((resp) => resp.json())
           .then(setConversations);
       });
-  }, []);
+  }, [activeUser.id, chatId, setConversations, activeUser.avatar]);
 
   return (
     <div className="main-wrapper">
@@ -74,18 +84,18 @@ export default function ChatDetails() {
         <header className="panel"></header>
 
         <ul class="conversation__messages">
-          {conversations.length === 0 ? (
-            <h2>Loading</h2>
-          ) : (
-            conversations.map((message, index) => (
-              <li
-                key={index}
-                className={message.userId === activeUser.id ? "outgoing" : null}
-              >
-                <p>{message.messageText}</p>
-              </li>
-            ))
-          )}
+          {conversations.length === 0
+            ? null
+            : conversations.map((message, index) => (
+                <li
+                  key={index}
+                  className={
+                    message.userId === activeUser.id ? "outgoing" : null
+                  }
+                >
+                  <p>{message.messageText}</p>
+                </li>
+              ))}
         </ul>
 
         {/* <!-- Message Box --> */}
