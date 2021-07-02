@@ -24,12 +24,7 @@ export default function ChatDetails() {
   const findCoversationId = useCallback(
     function () {
       let activeUserId = activeUser.id;
-      let array = [activeUserId, parseInt(chatId)];
-      array = array.sort((a, b) => a - b);
-      console.log(array);
-      return fetch(
-        `http://localhost:4000/conversations?userId=${array[0]}&${array[1]}`
-      )
+      return fetch(`http://localhost:4000/conversations?userId=${activeUserId}`)
         .then((resp) => resp.json())
         .then((conversationInfo) => {
           console.log(conversationInfo);
@@ -47,12 +42,15 @@ export default function ChatDetails() {
               userId: activeUserId,
               participantId: parseInt(chatId),
             };
-            fetch(`http://localhost:4000/conversations`, {
+            return fetch(`http://localhost:4000/conversations`, {
               method: "POST",
               headers: { "Content-Type": "application/json" },
               body: JSON.stringify(newConv),
-            });
-            return newConv;
+            })
+              .then((newCov) => newCov.json())
+              .then((newCov) => {
+                return newCov;
+              });
           }
           return findCov;
         });
@@ -65,6 +63,7 @@ export default function ChatDetails() {
       return;
     }
     findCoversationId().then((findCov) => {
+      console.log(findCov);
       if (findCov === undefined) {
         return;
       }
@@ -133,10 +132,10 @@ export default function ChatDetails() {
             className="panel conversation__message-box"
             onSubmit={(e) => {
               e.preventDefault();
-              console.log(e.target.sending.value);
               //find which conversation id is, // find the active user is
               findCoversationId().then((conversationObj) => {
                 let conversationId = conversationObj.id;
+                console.log(conversationId);
                 fetch("http://localhost:4000/messages", {
                   method: "POST",
                   headers: { "Content-Type": "application/json" },

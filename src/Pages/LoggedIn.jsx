@@ -37,7 +37,9 @@ export function LoggedIn() {
         {/* <!-- Chat header --> */}
         <header className="panel"></header>
 
-        <ul className="conversation__messages"></ul>
+        <ul className="conversation__messages">
+          
+        </ul>
 
         {/* <!-- Message Box --> */}
         <footer>
