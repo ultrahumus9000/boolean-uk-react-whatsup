@@ -8,29 +8,6 @@ export default function ChatDetails() {
   let history = useHistory();
   const { users, activeUser, conversations, setConversations } =
     useContext(usersContext);
-  function findCoversationId() {
-    let activeUserId = activeUser.id;
-    let array = [activeUserId, parseInt(chatId)];
-    array = array.sort((a, b) => a - b);
-    console.log(array);
-    return fetch(
-      `http://localhost:4000/conversations?userId=${array[0]}&${array[1]}`
-    )
-      .then((resp) => resp.json())
-      .then((conversationInfo) => {
-        console.log(conversationInfo);
-        let findCov = conversationInfo.find((cov) => {
-          let condition =
-            (cov.participantId === parseInt(chatId) &&
-              cov.userId === activeUser.id) ||
-            (cov.participantId === activeUser.id &&
-              cov.userId === parseInt(chatId));
-          return condition;
-        });
-        console.log(findCov);
-        return findCov;
-      });
-  }
 
   let filteredUsers = users.filter(
     (user) => user.firstName !== activeUser.firstName
@@ -62,6 +39,42 @@ export default function ChatDetails() {
     temporaryChat,
     findCoversationId,
   ]);
+
+  function findCoversationId() {
+    let activeUserId = activeUser.id;
+    let array = [activeUserId, parseInt(chatId)];
+    array = array.sort((a, b) => a - b);
+    console.log(array);
+    return fetch(
+      `http://localhost:4000/conversations?userId=${array[0]}&${array[1]}`
+    )
+      .then((resp) => resp.json())
+      .then((conversationInfo) => {
+        console.log(conversationInfo);
+        let findCov = conversationInfo.find((cov) => {
+          let condition =
+            (cov.participantId === parseInt(chatId) &&
+              cov.userId === activeUser.id) ||
+            (cov.participantId === activeUser.id &&
+              cov.userId === parseInt(chatId));
+          return condition;
+        });
+        console.log(findCov);
+        if (findCov === undefined) {
+          let newConv = {
+            userId: activeUserId,
+            participantId: parseInt(chatId),
+          };
+          fetch(`http://localhost:4000/conversations`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(newConv),
+          });
+          return newConv;
+        }
+        return findCov;
+      });
+  }
 
   return (
     <div className="main-wrapper">

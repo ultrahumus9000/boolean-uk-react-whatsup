@@ -8,8 +8,6 @@ export default function Registration() {
         className="registration-form"
         onSubmit={(e) => {
           e.preventDefault();
-          console.log(e.target.firstName.value);
-
           fetch("http://localhost:4000/users", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
@@ -17,7 +15,7 @@ export default function Registration() {
               firstName: e.target.firstName.value,
               lastName: e.target.lastName.value,
               phoneNumber: e.target.phone.value,
-              avatar: "https://robohash.org/1",
+              avatar: "https://robohash.org/5",
             }),
           }).then(() => {
             e.target.reset();
