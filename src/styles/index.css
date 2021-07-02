@@ -231,3 +231,35 @@ textarea:focus {
     height: 95vh;
   }
 }
+.add {
+  display: grid;
+  grid-template-columns: 16% auto;
+  align-items: center;
+}
+.main-wrapper-form {
+  margin-top: 14vh;
+  display: grid;
+  place-content: center;
+}
+.registration-form {
+  padding: 30px;
+  background-color: lightblue;
+  font-size: 1.2rem;
+  font-weight: bold;
+  display: grid;
+  justify-items: left;
+}
+.registration-form label {
+  margin-left: 30px;
+}
+.registration-form button {
+  border: #009688 2px solid;
+  background-color: #009688;
+  color: white;
+  padding: 5px 40px;
+  border-radius: 10px;
+  margin-left: 60px;
+}
+.registration-form button:active {
+  filter: brightness(1.3);
+}

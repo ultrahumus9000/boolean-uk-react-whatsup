@@ -1,13 +1,36 @@
-import { useContext, useEffect } from "react";
+import { useContext, useEffect, useState } from "react";
 import { useHistory, useParams } from "react-router-dom";
 import { usersContext } from "../App";
 import { SideChatList } from "../components/SideChat";
 
 export default function ChatDetails() {
+  const [temporaryChat, settemporaryChat] = useState("");
   let history = useHistory();
-
   const { users, activeUser, conversations, setConversations } =
     useContext(usersContext);
+  function findCoversationId() {
+    let activeUserId = activeUser.id;
+    let array = [activeUserId, parseInt(chatId)];
+    array = array.sort((a, b) => a - b);
+    console.log(array);
+    return fetch(
+      `http://localhost:4000/conversations?userId=${array[0]}&${array[1]}`
+    )
+      .then((resp) => resp.json())
+      .then((conversationInfo) => {
+        console.log(conversationInfo);
+        let findCov = conversationInfo.find((cov) => {
+          let condition =
+            (cov.participantId === parseInt(chatId) &&
+              cov.userId === activeUser.id) ||
+            (cov.participantId === activeUser.id &&
+              cov.userId === parseInt(chatId));
+          return condition;
+        });
+        console.log(findCov);
+        return findCov;
+      });
+  }
 
   let filteredUsers = users.filter(
     (user) => user.firstName !== activeUser.firstName
@@ -23,34 +46,22 @@ export default function ChatDetails() {
     if (activeUser.avatar === undefined) {
       return;
     }
-    let activeUserId = activeUser.id;
-    let array = [activeUserId, parseInt(chatId)];
-    array = array.sort((a, b) => a - b);
-    console.log(array);
-    fetch(`http://localhost:4000/conversations?userId=${array[0]}&${array[1]}`)
-      .then((resp) => resp.json())
-      .then((conversationInfo) => {
-        console.log(conversationInfo);
-        let findCov = conversationInfo.find((cov) => {
-          let condition =
-            (cov.participantId === parseInt(chatId) &&
-              cov.userId === activeUser.id) ||
-            (cov.participantId === activeUser.id &&
-              cov.userId === parseInt(chatId));
-          return condition;
-        });
-        console.log(findCov);
-        return findCov;
-      })
-      .then((findCov) => {
-        if (findCov === undefined) {
-          return;
-        }
-        fetch(`http://localhost:4000/messages?conversationId=${findCov.id}`)
-          .then((resp) => resp.json())
-          .then(setConversations);
-      });
-  }, [activeUser.id, chatId, setConversations, activeUser.avatar]);
+    findCoversationId().then((findCov) => {
+      if (findCov === undefined) {
+        return;
+      }
+      fetch(`http://localhost:4000/messages?conversationId=${findCov.id}`)
+        .then((resp) => resp.json())
+        .then(setConversations);
+    });
+  }, [
+    activeUser.id,
+    chatId,
+    setConversations,
+    activeUser.avatar,
+    temporaryChat,
+    findCoversationId,
+  ]);
 
   return (
     <div className="main-wrapper">
@@ -100,10 +111,39 @@ export default function ChatDetails() {
 
         {/* <!-- Message Box --> */}
         <footer>
-          <form className="panel conversation__message-box">
-            <input type="text" placeholder="Type a message" rows="1" value="" />
+          <form
+            className="panel conversation__message-box"
+            onSubmit={(e) => {
+              e.preventDefault();
+              console.log(e.target.sending.value);
+              //find which conversation id is, // find the active user is
+              findCoversationId().then((conversationObj) => {
+                let conversationId = conversationObj.id;
+                fetch("http://localhost:4000/messages", {
+                  method: "POST",
+                  headers: { "Content-Type": "application/json" },
+                  body: JSON.stringify({
+                    messageText: e.target.sending.value,
+                    userId: activeUser.id,
+                    conversationId: conversationId,
+                  }),
+                }).then(() => {
+                  settemporaryChat("");
+                });
+              });
+            }}
+          >
+            <input
+              type="text"
+              name="sending"
+              placeholder="Type a message"
+              rows="1"
+              value={temporaryChat}
+              onChange={(e) => {
+                settemporaryChat(e.target.value);
+              }}
+            />
             <button type="submit">
-              {/* <!-- This is the send button --> */}
               <svg
                 xmlns="http://www.w3.org/2000/svg"
                 viewBox="0 0 24 24"

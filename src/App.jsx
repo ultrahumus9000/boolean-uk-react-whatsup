@@ -3,6 +3,7 @@ import { Redirect, Switch, Route } from "react-router-dom";
 import { LogIn } from "./Pages/Log-in";
 import { LoggedIn } from "./Pages/LoggedIn";
 import ChatDetails from "./Pages/ChatDetails";
+import Registration from "./Pages/Registration";
 
 export const usersContext = React.createContext({});
 
@@ -46,6 +47,9 @@ export default function App() {
         >
           <ChatDetails />
         </usersContext.Provider>
+      </Route>
+      <Route path="/registration" exact>
+        <Registration />
       </Route>
     </div>
   );
