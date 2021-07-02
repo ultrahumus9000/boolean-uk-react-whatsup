@@ -1,3 +1,4 @@
+import { useCallback } from "react";
 import { useContext, useEffect, useState } from "react";
 import { useHistory, useParams } from "react-router-dom";
 import { usersContext } from "../App";
@@ -19,6 +20,46 @@ export default function ChatDetails() {
   const { chatId } = useParams();
 
   //chat id is who the active user chat with need to find coversation id  first
+
+  const findCoversationId = useCallback(
+    function () {
+      let activeUserId = activeUser.id;
+      let array = [activeUserId, parseInt(chatId)];
+      array = array.sort((a, b) => a - b);
+      console.log(array);
+      return fetch(
+        `http://localhost:4000/conversations?userId=${array[0]}&${array[1]}`
+      )
+        .then((resp) => resp.json())
+        .then((conversationInfo) => {
+          console.log(conversationInfo);
+          let findCov = conversationInfo.find((cov) => {
+            let condition =
+              (cov.participantId === parseInt(chatId) &&
+                cov.userId === activeUser.id) ||
+              (cov.participantId === activeUser.id &&
+                cov.userId === parseInt(chatId));
+            return condition;
+          });
+          console.log(findCov);
+          if (findCov === undefined) {
+            let newConv = {
+              userId: activeUserId,
+              participantId: parseInt(chatId),
+            };
+            fetch(`http://localhost:4000/conversations`, {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify(newConv),
+            });
+            return newConv;
+          }
+          return findCov;
+        });
+    },
+    [activeUser.id, chatId]
+  );
+
   useEffect(() => {
     if (activeUser.avatar === undefined) {
       return;
@@ -39,42 +80,6 @@ export default function ChatDetails() {
     temporaryChat,
     findCoversationId,
   ]);
-
-  function findCoversationId() {
-    let activeUserId = activeUser.id;
-    let array = [activeUserId, parseInt(chatId)];
-    array = array.sort((a, b) => a - b);
-    console.log(array);
-    return fetch(
-      `http://localhost:4000/conversations?userId=${array[0]}&${array[1]}`
-    )
-      .then((resp) => resp.json())
-      .then((conversationInfo) => {
-        console.log(conversationInfo);
-        let findCov = conversationInfo.find((cov) => {
-          let condition =
-            (cov.participantId === parseInt(chatId) &&
-              cov.userId === activeUser.id) ||
-            (cov.participantId === activeUser.id &&
-              cov.userId === parseInt(chatId));
-          return condition;
-        });
-        console.log(findCov);
-        if (findCov === undefined) {
-          let newConv = {
-            userId: activeUserId,
-            participantId: parseInt(chatId),
-          };
-          fetch(`http://localhost:4000/conversations`, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(newConv),
-          });
-          return newConv;
-        }
-        return findCov;
-      });
-  }
 
   return (
     <div className="main-wrapper">
